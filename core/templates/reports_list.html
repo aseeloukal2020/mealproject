@@ -1,0 +1,691 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reports</title>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        :root {
+            --bg-page: #f5f7fb;
+            --card-bg: #ffffff;
+            --card-border: #e5e7eb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --blue: #2563eb;
+            --green: #16a34a;
+            --orange: #f59e0b;
+            --red: #dc2626;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg-page);
+            color: var(--text-main);
+        }
+
+        /* Top nav */
+        .top-nav {
+            background: #ffffff;
+            border-bottom: 1px solid var(--card-border);
+            padding: 12px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .top-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        .breadcrumb-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .top-nav-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .top-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Page layout */
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 24px 32px;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 4px;
+        }
+        .page-sub {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Toggle */
+        .view-toggle {
+            display: inline-flex;
+            border-radius: 999px;
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+        }
+        .toggle-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 16px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .toggle-btn.active {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        /* Add report button */
+        .btn-primary {
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: var(--blue);
+            color: #ffffff;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        /* Filters */
+        .filter-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            padding: 14px 16px 10px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+            margin-bottom: 18px;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        @media (max-width: 900px) {
+            .filter-grid { grid-template-columns: 1fr; }
+        }
+
+        .filter-input, .filter-select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--card-border);
+            font-size: 13px;
+            outline: none;
+            background: #f9fafb;
+        }
+        .filter-input::placeholder { color: #9ca3af; }
+
+        /* Card container */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            padding: 10px 16px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        thead {
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--card-border);
+        }
+        th, td {
+            padding: 10px 6px;
+            text-align: left;
+        }
+        tbody tr {
+            border-bottom: 1px solid #f3f4f6;
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: #f9fafb; }
+
+        .cell-right { text-align: right; }
+        .muted { color: var(--text-muted); }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .badge-risk-low { background: #ecfdf3; color: #15803d; }
+        .badge-risk-medium { background: #fffbeb; color: #b45309; }
+        .badge-risk-high { background: #fef2f2; color: #b91c1c; }
+
+        /* Progress */
+        .progress-bar {
+            height: 6px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #2563eb;
+        }
+
+        /* Cards view */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .report-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            padding: 14px 16px 12px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+        }
+        .card-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .card-project-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .card-officer {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .card-date {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .card-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+        .card-info-item {
+            text-align: center;
+            padding: 4px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        .card-info-item .value {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-main);
+        }
+        .card-info-item .label {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+        .card-issues {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+        .card-footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .download-link {
+            text-decoration: none;
+            color: var(--blue);
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .download-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        .pagination a {
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+        }
+        .pagination a:hover {
+            background: #f3f4f6;
+        }
+        .pagination .current {
+            color: var(--text-muted);
+        }
+
+        .count-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Nav -->
+<header class="top-nav">
+    <div class="top-nav-left">
+        <a href="/" class="breadcrumb-link">
+            <i class="fa-solid fa-chevron-left"></i>
+            <span>Dashboard</span>
+        </a>
+        <span class="top-nav-title">/ Reports</span>
+    </div>
+    <div class="top-nav-right">
+        <a href="/projects/" class="breadcrumb-link">Projects</a>
+    </div>
+</header>
+
+<main class="page">
+    <!-- Header -->
+    <section class="header-row">
+        <div>
+            <h1 class="page-title">Monitoring Reports</h1>
+            <p id="reports-count" class="page-sub">
+                {{ total_reports }} reports
+            </p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <a href="{% url 'report_create' %}" class="btn-primary">
+                <i class="fa-solid fa-plus"></i>
+                Add Report
+            </a>
+            <div class="view-toggle">
+                <button id="btnTable" class="toggle-btn active">Table</button>
+                <button id="btnCards" class="toggle-btn">Cards</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="filter-card">
+        <div class="filter-grid">
+            <input id="searchInput" type="text"
+                   class="filter-input"
+                   placeholder="Search by project name or officer...">
+
+            <select id="projectFilter" class="filter-select">
+                <option value="all">All Projects</option>
+                {% for pname in projects_filter %}
+                    <option value="{{ pname|lower }}">{{ pname }}</option>
+                {% endfor %}
+            </select>
+
+            <select id="riskFilter" class="filter-select">
+                <option value="all">All Risk</option>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+            </select>
+
+            <select id="officerFilter" class="filter-select">
+                <option value="all">All Officers</option>
+                {% for oname in officers_filter %}
+                    <option value="{{ oname|lower }}">{{ oname }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </section>
+
+    <!-- Table View -->
+    <section id="tableView" class="card">
+        <table>
+            <thead>
+            <tr>
+                <th>Project</th>
+                <th>Officer</th>
+                <th>Visit Date</th>
+                <th>Progress</th>
+                <th>Male</th>
+                <th>Female</th>
+                <th>Children</th>
+                <th>Total</th>
+                <th>Risk</th>
+                <th>File</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for report in page_obj %}
+                <tr class="report-row"
+                    data-project="{{ report.project.name|lower }}"
+                    data-officer="{{ report.officer.username|lower }}"
+                    data-risk="{{ report.risk_level }}">
+                    <td>
+                        <div style="font-weight:600;">
+                            <a href="{% url 'project_details' report.project.id %}"
+                               style="text-decoration:none;color:inherit;">
+                                {{ report.project.name }}
+                            </a>
+                        </div>
+                        <div class="muted" style="font-size:11px;">
+                            {{ report.project.sector }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size:12px;">
+                            <i class="fa-regular fa-user" style="margin-right:4px;"></i>
+                            {{ report.officer.username }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size:12px;">
+                            <i class="fa-regular fa-calendar" style="margin-right:4px;"></i>
+                            {{ report.visit_date }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <div class="progress-bar" style="width:60px;">
+                                <div class="progress-fill"
+                                     style="width:{{ report.progress_percentage }}%;"></div>
+                            </div>
+                            <span style="font-size:12px;">
+                                {{ report.progress_percentage }}%
+                            </span>
+                        </div>
+                    </td>
+                    <td>{{ report.male }}</td>
+                    <td>{{ report.female }}</td>
+                    <td>{{ report.children }}</td>
+                    <td style="font-weight:600;">{{ report.beneficiaries_reached }}</td>
+                    <td>
+                        {% if report.risk_level == 'LOW' %}
+                            <span class="badge badge-risk-low">Low</span>
+                        {% elif report.risk_level == 'MEDIUM' %}
+                            <span class="badge badge-risk-medium">Medium</span>
+                        {% elif report.risk_level == 'HIGH' %}
+                            <span class="badge badge-risk-high">High</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if report.report_file %}
+                            <a href="{% url 'download_report_file' report.id %}"
+                               class="download-link">
+                                <i class="fa-solid fa-download"></i>
+                                Download
+                            </a>
+                        {% else %}
+                            <span class="muted">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="10" class="muted" style="text-align:center;padding:20px;">
+                        No reports found.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Cards View -->
+    <section id="cardsView" style="display:none;">
+        <div class="cards-grid">
+            {% for report in page_obj %}
+                <div class="report-card"
+                     data-project="{{ report.project.name|lower }}"
+                     data-officer="{{ report.officer.username|lower }}"
+                     data-risk="{{ report.risk_level }}">
+
+                    <div class="card-top-row">
+                        <div>
+                            <div class="card-project-name">
+                                <a href="{% url 'project_details' report.project.id %}"
+                                   style="text-decoration:none;color:inherit;">
+                                    {{ report.project.name }}
+                                </a>
+                            </div>
+                            <div class="card-officer">
+                                <i class="fa-regular fa-user"></i>
+                                {{ report.officer.username }}
+                            </div>
+                        </div>
+                        <div>
+                            {% if report.risk_level == 'LOW' %}
+                                <span class="badge badge-risk-low">Low</span>
+                            {% elif report.risk_level == 'MEDIUM' %}
+                                <span class="badge badge-risk-medium">Medium</span>
+                            {% elif report.risk_level == 'HIGH' %}
+                                <span class="badge badge-risk-high">High</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card-date">
+                        <i class="fa-regular fa-calendar"></i>
+                        {{ report.visit_date }}
+                    </div>
+
+                    <!-- Progress -->
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                        <span class="muted">Progress</span>
+                        <span>{{ report.progress_percentage }}%</span>
+                    </div>
+                    <div class="progress-bar" style="margin-bottom:10px;">
+                        <div class="progress-fill"
+                             style="width:{{ report.progress_percentage }}%;"></div>
+                    </div>
+
+                    <!-- Beneficiaries -->
+                    <div class="card-info-grid">
+                        <div class="card-info-item">
+                            <div class="value">{{ report.male }}</div>
+                            <div class="label">Male</div>
+                        </div>
+                        <div class="card-info-item">
+                            <div class="value">{{ report.female }}</div>
+                            <div class="label">Female</div>
+                        </div>
+                        <div class="card-info-item">
+                            <div class="value">{{ report.children }}</div>
+                            <div class="label">Children</div>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center;font-size:12px;margin-bottom:6px;">
+                        <span class="muted">Total:</span>
+                        <span style="font-weight:600;">{{ report.beneficiaries_reached }}</span>
+                    </div>
+
+                    <!-- Issues -->
+                    {% if report.issues %}
+                    <div class="card-issues">
+                        <strong>Issues:</strong>
+                        {{ report.issues|truncatewords:20 }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Footer -->
+                    <div class="card-footer-row">
+                        <div>
+                            {% if report.report_file %}
+                                <a href="{% url 'download_report_file' report.id %}"
+                                   class="download-link">
+                                    <i class="fa-solid fa-download"></i>
+                                    Download
+                                </a>
+                            {% else %}
+                                <span class="muted">No file</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <a href="{% url 'project_details' report.project.id %}"
+                               style="color:var(--blue);text-decoration:none;font-size:12px;">
+                                View Project
+                                <i class="fa-solid fa-chevron-right" style="font-size:10px;"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="muted" style="text-align:center;">No reports found.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">
+                <i class="fa-solid fa-angles-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">
+                Next
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">
+                <i class="fa-solid fa-angles-right"></i>
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</main>
+
+<script>
+    // Toggle Table / Cards
+    const btnTable = document.getElementById('btnTable');
+    const btnCards = document.getElementById('btnCards');
+    const tableView = document.getElementById('tableView');
+    const cardsView = document.getElementById('cardsView');
+
+    btnTable.addEventListener('click', () => {
+        btnTable.classList.add('active');
+        btnCards.classList.remove('active');
+        tableView.style.display = 'block';
+        cardsView.style.display = 'none';
+    });
+
+    btnCards.addEventListener('click', () => {
+        btnCards.classList.add('active');
+        btnTable.classList.remove('active');
+        tableView.style.display = 'none';
+        cardsView.style.display = 'block';
+    });
+
+    // Filters (client-side على الصفحة الحالية)
+    const searchInput = document.getElementById('searchInput');
+    const projectFilter = document.getElementById('projectFilter');
+    const riskFilter = document.getElementById('riskFilter');
+    const officerFilter = document.getElementById('officerFilter');
+
+    const rows = document.querySelectorAll('.report-row');
+    const cards = document.querySelectorAll('.report-card');
+
+    function normalize(str) {
+        return (str || '').toString().toLowerCase();
+    }
+
+    function matchesFilters(el) {
+        const project = normalize(el.dataset.project);
+        const officer = normalize(el.dataset.officer);
+        const risk = el.dataset.risk;
+
+        const searchVal = normalize(searchInput.value);
+        const projectVal = projectFilter.value;
+        const riskVal = riskFilter.value;
+        const officerVal = officerFilter.value;
+
+        // بحث بالاسم أو الضابط
+        if (searchVal && !project.includes(searchVal) && !officer.includes(searchVal)) {
+            return false;
+        }
+        if (projectVal !== 'all' && normalize(projectVal) !== project) return false;
+        if (riskVal !== 'all' && riskVal !== risk) return false;
+        if (officerVal !== 'all' && normalize(officerVal) !== officer) return false;
+
+        return true;
+    }
+
+    function applyFilters() {
+        rows.forEach(row => {
+            row.style.display = matchesFilters(row) ? '' : 'none';
+        });
+
+        cards.forEach(card => {
+            card.style.display = matchesFilters(card) ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    projectFilter.addEventListener('change', applyFilters);
+    riskFilter.addEventListener('change', applyFilters);
+    officerFilter.addEventListener('change', applyFilters);
+</script>
+
+</body>
+</html>

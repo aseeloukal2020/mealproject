@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}NGO Monitoring{% endblock %}</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        :root {
+            --bg-page: #f5f7fb;
+            --card-bg: #ffffff;
+            --card-border: #e5e7eb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --blue: #2563eb;
+            --green: #16a34a;
+            --orange: #f59e0b;
+            --red: #dc2626;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg-page);
+            color: var(--text-main);
+        }
+
+        /* ===== NAVBAR ===== */
+        .main-nav {
+            background: #111827;
+            border-bottom: 1px solid #1f2937;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 52px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 15px;
+            padding-right: 24px;
+            margin-right: 8px;
+            border-right: 1px solid #374151;
+        }
+
+        .nav-logo-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #9ca3af;
+            font-size: 13px;
+            padding: 14px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link.active {
+            color: #ffffff;
+            border-bottom-color: #4f46e5;
+        }
+
+        .nav-link i {
+            font-size: 14px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #d1d5db;
+            font-size: 13px;
+        }
+
+        .nav-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #d1d5db;
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .main-nav {
+                padding: 0 12px;
+            }
+            .nav-logo {
+                padding-right: 12px;
+                margin-right: 4px;
+                font-size: 13px;
+            }
+            .nav-link {
+                padding: 14px 10px;
+                font-size: 12px;
+            }
+            .nav-link span {
+                display: none;
+            }
+            .nav-link i {
+                font-size: 16px;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ===== NAVBAR (مشترك بين كل الصفحات) ===== -->
+<nav class="main-nav">
+    <div class="nav-left">
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon">NG</div>
+            NGO Monitor
+        </a>
+
+        <div class="nav-links">
+            <a href="/"
+               class="nav-link {% block nav_dashboard %}{% endblock %}">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/projects/"
+               class="nav-link {% block nav_projects %}{% endblock %}">
+                <i class="fa-solid fa-diagram-project"></i>
+                <span>Projects</span>
+            </a>
+
+            <a href="/reports/"
+               class="nav-link {% block nav_reports %}{% endblock %}">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Reports</span>
+           <li>
+  <a href="{% url 'proposals_list' %}" class="nav-link {% block nav_proposals %}{% endblock %}">
+    <i class="fa-solid fa-file-signature"></i> Proposals
+  </a>
+</li>
+        </div>
+    </div>
+
+    <div class="nav-right">
+    {% if request.user.is_authenticated %}
+         {% if request.user.is_superuser or request.user.role == 'ADMIN' %}
+            <a href="/admin/"
+               style="color:#d1d5db;text-decoration:none;font-size:13px;
+                      display:flex;align-items:center;gap:6px;margin-right:8px;">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+                Admin
+            </a>
+        {% endif %}
+        
+        <!-- إشعار للأدمن عن المستخدمين المعلّقين -->
+        {% if request.user.is_superuser or request.user.role == 'ADMIN' %}
+            {% if pending_users_count %}
+            <a href="/admin/core/user/?is_approved__exact=0"
+               style="color:#f59e0b;text-decoration:none;font-size:12px;
+                      display:flex;align-items:center;gap:4px;">
+                <i class="fa-solid fa-bell"></i>
+                {{ pending_users_count }} pending
+            </a>
+            {% endif %}
+        {% endif %}
+
+        <div class="nav-user">
+            <div class="nav-avatar">
+                {{ request.user.username|first|upper }}
+            </div>
+            <span>{{ request.user.username }}</span>
+        </div>
+
+        <a href="{% url 'logout' %}"
+           style="color:#9ca3af;text-decoration:none;font-size:12px;
+                  display:flex;align-items:center;gap:4px;">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Logout
+        </a>
+    {% else %}
+        <a href="{% url 'login' %}"
+           style="color:#d1d5db;text-decoration:none;font-size:13px;">
+            Sign In
+        </a>
+    {% endif %}
+</div>
+</nav>
+
+<!-- ===== CONTENT ===== -->
+{% block content %}{% endblock %}
+
+<!-- ===== SCRIPTS ===== -->
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

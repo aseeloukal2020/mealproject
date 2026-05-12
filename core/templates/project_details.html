@@ -1,0 +1,563 @@
+{% extends 'base.html' %}
+
+{% block title %}Project Details – {{ project.name }}{% endblock %}
+{% block nav_projects %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 24px 32px;
+    }
+
+    /* Header */
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .breadcrumb-link {
+        text-decoration: none;
+        color: var(--text-muted);
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 4px;
+    }
+
+    .page-sub {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .status-active { background:#e0efff; color:#2563eb; }
+    .status-completed { background:#ecfdf3; color:#16a34a; }
+    .status-delayed { background:#fff7ed; color:#f97316; }
+
+    .health-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+    }
+    .health-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+    }
+    .health-good .health-dot { background:#22c55e; }
+    .health-warning .health-dot { background:#eab308; }
+    .health-critical .health-dot { background:#ef4444; }
+
+    /* Cards */
+    .card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1px solid var(--card-border);
+        padding: 16px 18px;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+        margin-bottom: 18px;
+    }
+
+    .card-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .card-title {
+        font-size: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .card-subtext {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: 2.2fr 1.3fr 1.3fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .summary-main-name {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .summary-location {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .summary-meta {
+        display: grid;
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .summary-meta span.label {
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    .progress-wrapper {
+        margin-top: 10px;
+    }
+
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .progress-bar {
+        height: 8px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: #2563eb;
+    }
+
+    .small-stat {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .small-stat-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .small-stat-value {
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    /* Layout for charts + table */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr);
+        gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+        .grid-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .chart-container {
+        position: relative;
+        height: 260px;
+    }
+
+    canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* Reports table */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    thead {
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--card-border);
+    }
+
+    th, td {
+        padding: 8px 6px;
+        text-align: left;
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    .cell-right { text-align: right; }
+
+    .badge-risk {
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+    .risk-low { background:#ecfdf3; color:#15803d; }
+    .risk-medium { background:#fffbeb; color:#b45309; }
+    .risk-high { background:#fef2f2; color:#b91c1c; }
+
+    .muted { color: var(--text-muted); font-size: 12px; }
+
+    .reports-count {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="page">
+
+    <!-- Header -->
+    <section class="header-row">
+        <div>
+            <a href="{% url 'projects' %}" class="breadcrumb-link">
+                <i class="fa-solid fa-chevron-left"></i>
+                Back to Projects
+            </a>
+            <h1 class="page-title">{{ project.name }}</h1>
+            <p class="page-sub">
+                Project details and monitoring reports.
+            </p>
+        </div>
+        <div style="text-align:right;">
+            {% with health=project.get_health_status %}
+                <div style="margin-bottom:6px;">
+                    {% if health == 'Good' %}
+                        <span class="health-indicator health-good">
+                            <span class="health-dot"></span> Good
+                        </span>
+                    {% elif health == 'Warning' %}
+                        <span class="health-indicator health-warning">
+                            <span class="health-dot"></span> Warning
+                        </span>
+                    {% elif health == 'Critical' %}
+                        <span class="health-indicator health-critical">
+                            <span class="health-dot"></span> Critical
+                        </span>
+                    {% else %}
+                        <span class="muted">{{ health }}</span>
+                    {% endif %}
+                </div>
+            {% endwith %}
+
+            <div>
+                {% if project.status == 'ACTIVE' %}
+                    <span class="status-pill status-active">Active</span>
+                {% elif project.status == 'COMPLETED' %}
+                    <span class="status-pill status-completed">Completed</span>
+                {% elif project.status == 'DELAYED' %}
+                    <span class="status-pill status-delayed">Delayed</span>
+                {% else %}
+                    <span class="status-pill">{{ project.status }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Summary card -->
+    <section class="card">
+        <div class="summary-grid">
+            <!-- Left: main info -->
+            <div>
+                <div class="summary-main-name">{{ project.name }}</div>
+                <div class="summary-location">
+                    <i class="fa-solid fa-location-dot"></i>
+                    {{ project.location }}
+                </div>
+
+                <div class="summary-meta">
+                    <div>
+                        <span class="label">Sector:</span><br>
+                        <span>{{ project.get_sector_display }}</span>
+                    </div>
+                    <div>
+                        <span class="label">Donor:</span><br>
+                        <span>{{ project.donor }}</span>
+                    </div>
+                    <div>
+                        <span class="label">Start date:</span><br>
+                        <span>{{ project.start_date }}</span>
+                    </div>
+                    <div>
+                        <span class="label">End date:</span><br>
+                        <span>{{ project.end_date }}</span>
+                    </div>
+                    <div>
+                        <span class="label">Created by:</span><br>
+                        <span>{{ project.created_by.username }}</span>
+                    </div>
+                    <div>
+                        <span class="label">Assigned officer:</span><br>
+                        <span>
+                            {% if project.assigned_officer %}
+                                {{ project.assigned_officer.username }}
+                            {% else %}
+                                <span class="muted">Not assigned</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="progress-wrapper">
+                    <div class="progress-label">
+                        <span>Overall progress</span>
+                        <span>{{ project.progress_percentage }}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:{{ project.progress_percentage }}%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle: budget -->
+            <div class="small-stat">
+                <div class="small-stat-label">Budget</div>
+                <div class="small-stat-value">
+                    ${{ project.budget|floatformat:0 }}
+                </div>
+                <div class="field-help muted" style="margin-top:4px;">
+                    Target beneficiaries: {{ project.target_beneficiaries }}
+                </div>
+            </div>
+
+            <!-- Right: reports summary -->
+            <div class="small-stat">
+                <div class="small-stat-label">Monitoring</div>
+                <div class="small-stat-value">
+                    {{ reports|length }} reports
+                </div>
+                <div class="field-help muted" style="margin-top:4px;">
+                    {% if reports %}
+                        Last visit: {{ reports.0.visit_date }}
+                    {% else %}
+                        No visits yet.
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Charts + table -->
+    <section class="grid-2">
+        <!-- Monitoring reports table (latest 7) -->
+        <div class="card">
+            <div class="card-header-row">
+                <div>
+                    <div class="card-title">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        Monitoring Reports
+                    </div>
+                    <div class="card-subtext">
+                        Showing latest 7 reports for this project.
+                    </div>
+                </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Progress</th>
+                        <th>Male</th>
+                        <th>Female</th>
+                        <th>Children</th>
+                        <th>Total</th>
+                        <th>Risk</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for report in latest_reports %}
+                        <tr>
+                            <td>{{ report.visit_date }}</td>
+                            <td>{{ report.progress_percentage }}%</td>
+                            <td>{{ report.male }}</td>
+                            <td>{{ report.female }}</td>
+                            <td>{{ report.children }}</td>
+                            <td class="cell-right">{{ report.beneficiaries_reached }}</td>
+                            <td>
+                                {% if report.risk_level == 'LOW' %}
+                                    <span class="badge-risk risk-low">Low</span>
+                                {% elif report.risk_level == 'MEDIUM' %}
+                                    <span class="badge-risk risk-medium">Medium</span>
+                                {% elif report.risk_level == 'HIGH' %}
+                                    <span class="badge-risk risk-high">High</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="muted">
+                                No monitoring reports available yet.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="reports-count">
+                Total reports: {{ reports|length }}
+            </div>
+        </div>
+
+        <!-- Charts card -->
+        <div class="card">
+            <div class="card-header-row">
+                <div>
+                    <div class="card-title">
+                        <i class="fa-solid fa-chart-line"></i>
+                        Project Charts
+                    </div>
+                    <div class="card-subtext">
+                        Progress over time and beneficiaries distribution.
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container" style="margin-bottom:16px;">
+                <canvas id="progressChart"></canvas>
+            </div>
+            <div class="chart-container" style="height:220px;">
+                <canvas id="beneficiariesChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // ===== Progress over time =====
+    let dates = [];
+    let progressData = [];
+
+    {% for report in reports %}
+        dates.push("{{ report.visit_date|date:'M d' }}");
+        progressData.push({{ report.progress_percentage }});
+    {% endfor %}
+
+    const progressCtx = document.getElementById('progressChart');
+    if (progressCtx && dates.length > 0) {
+        new Chart(progressCtx, {
+            type: 'line',
+            data: {
+                labels: dates.reverse(),  // من الأقدم للأحدث
+                datasets: [{
+                    label: 'Progress (%)',
+                    data: progressData.reverse(),
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                    tension: 0.25,
+                    fill: true,
+                    pointRadius: 3,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { stepSize: 20 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+</script>
+
+<script>
+    // ===== Beneficiaries distribution =====
+    let totalMale = 0;
+    let totalFemale = 0;
+    let totalChildren = 0;
+
+    {% for report in reports %}
+        totalMale += {{ report.male }};
+        totalFemale += {{ report.female }};
+        totalChildren += {{ report.children }};
+    {% endfor %}
+
+    const beneCtx = document.getElementById('beneficiariesChart');
+    if (beneCtx && (totalMale + totalFemale + totalChildren) > 0) {
+        new Chart(beneCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Male', 'Female', 'Children'],
+                datasets: [{
+                    data: [totalMale, totalFemale, totalChildren],
+                    backgroundColor: ['#3b82f6', '#ec4899', '#f97316'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 14 }
+                    }
+                },
+                cutout: '60%',
+            }
+        });
+    }
+</script>
+{% endblock %}

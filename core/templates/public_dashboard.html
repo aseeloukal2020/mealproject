@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+{% block title %}NGO Dashboard – Public{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 24px 32px;
+    }
+
+    .hero-title {
+        font-size: 26px;
+        font-weight: 700;
+        margin: 0 0 6px;
+    }
+
+    .hero-sub {
+        margin: 0;
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    /* Top stats cards */
+    .cards-row-top {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1px solid var(--card-border);
+        padding: 16px 18px;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+
+    .stat-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .icon-blue  { background:#eff6ff; color:#2563eb; }
+    .icon-green { background:#ecfdf3; color:#16a34a; }
+    .icon-purple { background:#f5f3ff; color:#7c3aed; }
+    .icon-yellow { background:#fffbeb; color:#f59e0b; }
+
+    .stat-value {
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .stat-sub {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    /* Project status + sector */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.5fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 900px) {
+        .grid-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1px solid var(--card-border);
+        padding: 16px 18px 14px;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+    }
+
+    .card-title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .card-title-row i {
+        font-size: 15px;
+    }
+
+    .card-title {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .card-sub {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .status-row,
+    .sector-row {
+        display: grid;
+        grid-template-columns: 90px 1fr 24px;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .status-label,
+    .sector-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-dot,
+    .sector-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+    }
+
+    .status-active   { background:#3b82f6; }
+    .status-delayed  { background:#f97316; }
+    .status-completed{ background:#22c55e; }
+
+    .status-bar-track,
+    .sector-bar-track {
+        height: 8px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+    }
+
+    .status-bar-fill,
+    .sector-bar-fill {
+        height: 100%;
+        background: #3b82f6;
+    }
+
+    /* Budget card */
+    .budget-card-title {
+        margin-bottom: 4px;
+    }
+
+    .budget-bar-track {
+        height: 10px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .budget-bar-fill {
+        height: 100%;
+        background: #16a34a;
+    }
+
+    .budget-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .budget-footer span.value {
+        font-weight: 600;
+        color: var(--text-main);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="page">
+    <!-- العنوان -->
+    <section>
+        <h1 class="hero-title">NGO Dashboard</h1>
+        <p class="hero-sub">
+            Project monitoring and analytics overview (public view). For full access, please sign in.
+        </p>
+    </section>
+
+    <!-- الكروت الأربعة العلوية -->
+    <section class="cards-row-top">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-label">Total Projects</div>
+                <div class="stat-icon icon-blue">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+            </div>
+            <div class="stat-value">{{ total_projects }}</div>
+            <div class="stat-sub">
+                {{ active_projects }} active
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-label">Total Budget</div>
+                <div class="stat-icon icon-green">
+                    <i class="fa-solid fa-dollar-sign"></i>
+                </div>
+            </div>
+            <div class="stat-value">${{ total_budget|floatformat:0 }}</div>
+            <div class="stat-sub">
+                {{ budget_utilization_pct|default:0 }}% utilized
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-label">Beneficiaries</div>
+                <div class="stat-icon icon-purple">
+                    <i class="fa-solid fa-user-group"></i>
+                </div>
+            </div>
+            <div class="stat-value">{{ reached_beneficiaries|default:0 }}</div>
+            <div class="stat-sub">
+                of {{ total_target_beneficiaries|default:0 }} target
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-label">Open Issues</div>
+                <div class="stat-icon icon-yellow">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <div class="stat-value">{{ open_issues }}</div>
+            <div class="stat-sub">
+                high risk reports
+            </div>
+        </div>
+    </section>
+
+    <!-- Project Status + Sector Distribution -->
+    <section class="grid-2">
+        <!-- Project Status -->
+        <div class="card">
+            <div class="card-title-row">
+                <i class="fa-solid fa-list-check"></i>
+                <div class="card-title">Project Status</div>
+            </div>
+            <div class="card-sub">
+                Distribution of projects by implementation status.
+            </div>
+
+            <div class="status-row">
+                <div class="status-label">
+                    <span class="status-dot status-active"></span>
+                    <span>Active</span>
+                </div>
+                <div class="status-bar-track">
+                    <div class="status-bar-fill"
+                         style="width:{% if total_projects %}{% widthratio active_projects total_projects 100 %}{% else %}0{% endif %}%;"></div>
+                </div>
+                <div>{{ active_projects }}</div>
+            </div>
+
+            <div class="status-row">
+                <div class="status-label">
+                    <span class="status-dot status-delayed"></span>
+                    <span>Delayed</span>
+                </div>
+                <div class="status-bar-track">
+                    <div class="status-bar-fill"
+                         style="background:#f97316;
+                                width:{% if total_projects %}{% widthratio delayed_projects total_projects 100 %}{% else %}0{% endif %}%;"></div>
+                </div>
+                <div>{{ delayed_projects }}</div>
+            </div>
+
+            <div class="status-row">
+                <div class="status-label">
+                    <span class="status-dot status-completed"></span>
+                    <span>Completed</span>
+                </div>
+                <div class="status-bar-track">
+                    <div class="status-bar-fill"
+                         style="background:#22c55e;
+                                width:{% if total_projects %}{% widthratio completed_projects total_projects 100 %}{% else %}0{% endif %}%;"></div>
+                </div>
+                <div>{{ completed_projects }}</div>
+            </div>
+        </div>
+
+        <!-- Sector Distribution -->
+        <div class="card">
+            <div class="card-title-row">
+                <i class="fa-solid fa-globe"></i>
+                <div class="card-title">Sector Distribution</div>
+            </div>
+            <div class="card-sub">
+                Projects count per sector.
+            </div>
+
+            {% for sector in sectors %}
+            <div class="sector-row">
+                <div class="sector-label">
+                    <span class="sector-dot" style="background:#9ca3af;"></span>
+                    <span>{{ sector.sector }}</span>
+                </div>
+                <div class="sector-bar-track">
+                    <div class="sector-bar-fill"
+                         style="width:{% if total_projects %}{% widthratio sector.total total_projects 100 %}{% else %}0{% endif %}%;"></div>
+                </div>
+                <div>{{ sector.total }}</div>
+            </div>
+            {% empty %}
+            <div class="card-sub">No projects yet.</div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Budget Utilization -->
+    <section class="card">
+        <div class="card-title-row budget-card-title">
+            <i class="fa-solid fa-sack-dollar"></i>
+            <div class="card-title">Budget Utilization</div>
+        </div>
+        <div class="card-sub">
+            Approximate utilization based on average project progress.
+        </div>
+
+        <div class="budget-bar-track">
+            <div class="budget-bar-fill"
+                 style="width: {{ budget_utilization_pct|default:0 }}%;"></div>
+        </div>
+
+        <div class="budget-footer">
+            <div>
+                <span class="value">{{ budget_utilization_pct|default:0 }}%</span>
+                &nbsp;utilized
+            </div>
+            <div>
+                <span class="value">${{ budget_used|floatformat:0 }}</span>
+                &nbsp;of ${{ total_budget|floatformat:0 }}
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

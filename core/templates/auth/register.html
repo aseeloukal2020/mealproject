@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register – NGO Monitor</title>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f5f7fb;
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh;
+        }
+
+        .auth-container { width: 100%; max-width: 480px; padding: 20px; }
+
+        .auth-logo { text-align: center; margin-bottom: 28px; }
+
+        .auth-logo-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 10px;
+        }
+
+        .auth-logo h1 { font-size: 22px; font-weight: 700; margin: 0; color: #111827; }
+        .auth-logo p { font-size: 13px; color: #6b7280; margin: 4px 0 0; }
+
+        .auth-card {
+            background: #fff; border-radius: 16px;
+            border: 1px solid #e5e7eb; padding: 28px 24px;
+            box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+        }
+
+        .auth-card h2 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+        .auth-card .sub { font-size: 13px; color: #6b7280; margin: 0 0 20px; }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-row {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 12px; margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block; font-size: 13px; font-weight: 500;
+            color: #111827; margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%; padding: 10px 12px; border-radius: 10px;
+            border: 1px solid #e5e7eb; font-size: 13px;
+            outline: none; background: #f9fafb; color: #111827;
+        }
+
+        .form-input:focus {
+            border-color: #4f46e5; background: #fff;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+        }
+
+        .btn-submit {
+            width: 100%; padding: 10px; border-radius: 999px;
+            background: #4f46e5; color: #fff; border: none;
+            font-size: 14px; font-weight: 500; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+
+        .btn-submit:hover { background: #4338ca; }
+
+        .auth-footer {
+            text-align: center; margin-top: 16px;
+            font-size: 13px; color: #6b7280;
+        }
+
+        .auth-footer a { color: #4f46e5; text-decoration: none; font-weight: 500; }
+        .auth-footer a:hover { text-decoration: underline; }
+
+        .errors {
+            background: #fef2f2; border: 1px solid #fecaca;
+            border-radius: 10px; padding: 10px 14px;
+            margin-bottom: 16px; font-size: 13px; color: #991b1b;
+        }
+
+        .errors ul { margin: 4px 0 0; padding-left: 18px; }
+
+        .info-box {
+            background: #eff6ff; border: 1px solid #bfdbfe;
+            border-radius: 10px; padding: 10px 14px;
+            margin-bottom: 16px; font-size: 12px; color: #1e40af;
+            display: flex; align-items: flex-start; gap: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-container">
+    <div class="auth-logo">
+        <div class="auth-logo-icon">NG</div>
+        <h1>NGO Monitor</h1>
+        <p>Project Monitoring System</p>
+    </div>
+
+    <div class="auth-card">
+        <h2>Create an account</h2>
+        <p class="sub">Register to request access to the monitoring system.</p>
+
+        <div class="info-box">
+            <i class="fa-solid fa-circle-info" style="margin-top:2px;"></i>
+            <div>
+                After registration, your account will be reviewed by an administrator.
+                You will be able to access the system once your account is approved.
+            </div>
+        </div>
+
+        {% if form.errors %}
+        <div class="errors">
+            <strong><i class="fa-solid fa-circle-exclamation"></i> Please fix:</strong>
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-row">
+                <div>
+                    <label class="form-label">First Name</label>
+                    {{ form.first_name }}
+                </div>
+                <div>
+                    <label class="form-label">Last Name</label>
+                    {{ form.last_name }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Username *</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                 <div style="color:#b91c1c;font-size:12px;margin-top:4px;">
+                 {{ form.username.errors.0 }}
+                 </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                {{ form.email }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password *</label>
+                {{ form.password }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirm Password *</label>
+                {{ form.password_confirm }}
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fa-solid fa-user-plus"></i>
+                Create Account
+            </button>
+        </form>
+    </div>
+
+    <div class="auth-footer">
+        Already have an account?
+        <a href="{% url 'login' %}">Sign in</a>
+    </div>
+</div>
+</body>
+</html>

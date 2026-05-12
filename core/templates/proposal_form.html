@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if proposal %}Edit Proposal{% else %}New Proposal{% endif %}{% endblock %}
+{% block nav_proposals %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 24px 24px 32px;
+    }
+    .card {
+        background: var(--card-bg); border-radius: 16px;
+        border: 1px solid var(--card-border); padding: 18px 18px 16px;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+    }
+    .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .page-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-main);
+        margin-bottom: 6px;
+    }
+    .form-input {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--card-border);
+        font-size: 13px;
+        outline: none;
+        background: #f9fafb;
+        color: var(--text-main);
+    }
+    .form-input:focus {
+        border-color: #4f46e5;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 16px;
+        margin-bottom: 12px;
+    }
+    @media (max-width: 700px) { .form-row { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="page">
+    <h1 class="page-title">
+        {% if proposal %}Edit Proposal{% else %}New Proposal{% endif %}
+    </h1>
+    <p class="page-sub">
+        Define project idea, budget, and key info before converting it to a real project.
+    </p>
+
+    <section class="card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-row">
+                <div>
+                    <label class="form-label">Title</label>
+                    {{ form.title }}
+                </div>
+                <div>
+                    <label class="form-label">Sector</label>
+                    {{ form.sector }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label class="form-label">Donor</label>
+                    {{ form.donor }}
+                </div>
+                <div>
+                    <label class="form-label">Proposed Budget</label>
+                    {{ form.proposed_budget }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label class="form-label">Proposed Start Date</label>
+                    {{ form.proposed_start_date }}
+                </div>
+                <div>
+                    <label class="form-label">Proposed End Date</label>
+                    {{ form.proposed_end_date }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label class="form-label">Location</label>
+                    {{ form.location }}
+                </div>
+                <div>
+                    <label class="form-label">Target Beneficiaries</label>
+                    {{ form.target_beneficiaries }}
+                </div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <label class="form-label">Summary</label>
+                {{ form.summary }}
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label class="form-label">Status</label>
+                    {{ form.status }}
+                </div>
+                <div>
+                    <label class="form-label">Linked Project (optional)</label>
+                    {{ form.project }}
+                </div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <label class="form-label">Proposal File</label>
+                {{ form.proposal_file }}
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+                <a href="{% url 'proposals_list' %}" class="btn btn-secondary"
+                   style="border-radius:999px;padding:8px 18px;font-size:13px;text-decoration:none;
+                          border:1px solid #d1d5db;color:#374151;background:#fff;">
+                    Cancel
+                </a>
+                <button type="submit"
+                        style="border:none;border-radius:999px;padding:8px 18px;
+                               background:#2563eb;color:#fff;font-size:13px;
+                               display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+                    <i class="fa-solid fa-check"></i>
+                    Save
+                </button>
+            </div>
+        </form>
+    </section>
+</main>
+{% endblock %}

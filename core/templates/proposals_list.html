@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+
+{% block title %}Proposals{% endblock %}
+{% block nav_proposals %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* نفس ستايل projects تقريباً */
+    .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 24px 32px;
+    }
+
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .page-title { font-size: 24px; font-weight: 700; margin: 0 0 4px; }
+    .page-sub { margin: 0; font-size: 13px; color: var(--text-muted); }
+
+    .view-toggle {
+        display: inline-flex; border-radius: 999px;
+        border: 1px solid var(--card-border); overflow: hidden;
+    }
+    .toggle-btn {
+        border: none; background: transparent;
+        padding: 6px 16px; font-size: 13px; cursor: pointer;
+    }
+    .toggle-btn.active { background: #000; color: #fff; }
+
+    .filter-card {
+        background: var(--card-bg); border-radius: 16px;
+        border: 1px solid var(--card-border); padding: 14px 16px 10px;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.04); margin-bottom: 18px;
+    }
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+        gap: 8px;
+    }
+    @media (max-width: 900px) { .filter-grid { grid-template-columns: 1fr; } }
+
+    .filter-input, .filter-select {
+        width: 100%; padding: 8px 10px; border-radius: 999px;
+        border: 1px solid var(--card-border); font-size: 13px;
+        outline: none; background: #f9fafb;
+    }
+
+    .card {
+        background: var(--card-bg); border-radius: 16px;
+        border: 1px solid var(--card-border); padding: 10px 16px;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { color: var(--text-muted); border-bottom: 1px solid var(--card-border); }
+    th, td { padding: 10px 6px; text-align: left; }
+    tbody tr { border-bottom: 1px solid #f3f4f6; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f9fafb; }
+
+    .project-name { font-weight: 600; }
+    .project-location { font-size: 12px; color: var(--text-muted); }
+    .cell-right { text-align: right; }
+    .muted { color: var(--text-muted); }
+
+    .badge {
+        display: inline-flex; align-items: center;
+        padding: 2px 10px; border-radius: 999px;
+        font-size: 11px; font-weight: 500;
+    }
+    /* حالات البروبوزال */
+    .badge-status-draft { background: #e5e7eb; color: #374151; }
+    .badge-status-submitted { background: #dbeafe; color: #1d4ed8; }
+    .badge-status-approved { background: #ecfdf3; color: #16a34a; }
+    .badge-status-rejected { background: #fef2f2; color: #b91c1c; }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+    }
+    .project-card {
+        background: var(--card-bg); border-radius: 16px;
+        border: 1px solid var(--card-border); padding: 14px 16px 12px;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+    }
+    .card-top-row {
+        display: flex; justify-content: space-between;
+        align-items: flex-start; margin-bottom: 4px;
+    }
+    .card-project-name { font-weight: 600; }
+    .card-location { font-size: 12px; color: var(--text-muted); }
+
+    .card-tags { display: flex; gap: 6px; margin: 6px 0 8px; font-size: 11px; }
+    .card-footer-row {
+        display: flex; justify-content: space-between;
+        align-items: center; margin-top: 10px; font-size: 12px; color: var(--text-muted);
+    }
+    .card-footer-row .strong { font-weight: 600; color: var(--text-main); }
+    .count-text { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="page">
+    <!-- الهيدر -->
+    <section class="header-row">
+        <div>
+            <h1 class="page-title">Proposals</h1>
+            <p id="proposals-count" class="page-sub">
+                {{ proposals|length }} proposals
+            </p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div class="view-toggle">
+                <button id="btnTable" class="toggle-btn active">Table</button>
+                <button id="btnCards" class="toggle-btn">Cards</button>
+            </div>
+
+            {% if request.user.is_authenticated %}
+                <a href="{% url 'proposal_create' %}"
+                   style="border:none;cursor:pointer;text-decoration:none;padding:8px 14px;border-radius:999px;
+                          background:#2563eb;color:#ffffff;font-size:13px;
+                          display:inline-flex;align-items:center;gap:6px;">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Proposal
+                </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- الفلاتر -->
+    <section class="filter-card">
+        <div class="filter-grid">
+            <input id="searchInput" type="text" class="filter-input" placeholder="Search proposals...">
+
+            <select id="statusFilter" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="DRAFT">Draft</option>
+                <option value="SUBMITTED">Submitted</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+            </select>
+
+            <select id="linkedFilter" class="filter-select">
+                <option value="all">All Link</option>
+                <option value="yes">Linked to project</option>
+                <option value="no">Not linked</option>
+            </select>
+
+            <select id="regionFilter" class="filter-select">
+                <option value="all">All Regions</option>
+                {% for region in regions %}
+                    <option value="{{ region|lower }}">{{ region }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- مكان فاضي عشان نحافظ على الشبكة 5 أعمدة -->
+            <div></div>
+        </div>
+    </section>
+
+    <!-- Table View -->
+    <section id="tableView" class="card">
+        <table>
+            <thead>
+            <tr>
+                <th>Proposal</th>
+                <th>Status</th>
+                <th>Donor</th>
+                <th>Sector</th>
+                <th>Budget</th>
+                <th>Linked Project</th>
+                <th class="cell-right">Created</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for proposal in proposals %}
+            <tr class="project-row"
+                data-name="{{ proposal.title|lower }}"
+                data-status="{{ proposal.status }}"
+                data-region="{{ proposal.location|lower }}"
+                data-linked="{% if proposal.project %}yes{% else %}no{% endif %}">
+                <td>
+                    <div class="project-name">
+                        <a href="{% url 'proposal_detail' proposal.id %}" style="text-decoration:none;color:inherit;">
+                            {{ proposal.title }}
+                        </a>
+                    </div>
+                    <div class="project-location">
+                        <i class="fa-solid fa-location-dot"></i> {{ proposal.location }}
+                    </div>
+                </td>
+                <td>
+                    {% if proposal.status == 'DRAFT' %}
+                        <span class="badge badge-status-draft">Draft</span>
+                    {% elif proposal.status == 'SUBMITTED' %}
+                        <span class="badge badge-status-submitted">Submitted</span>
+                    {% elif proposal.status == 'APPROVED' %}
+                        <span class="badge badge-status-approved">Approved</span>
+                    {% elif proposal.status == 'REJECTED' %}
+                        <span class="badge badge-status-rejected">Rejected</span>
+                    {% endif %}
+                </td>
+                <td>{{ proposal.donor }}</td>
+                <td>{{ proposal.get_sector_display }}</td>
+                <td>${{ proposal.proposed_budget|floatformat:0 }}</td>
+                <td>
+                    {% if proposal.project %}
+                        <a href="{% url 'project_details' proposal.project.id %}">
+                            {{ proposal.project.name }}
+                        </a>
+                    {% else %}
+                        <span class="muted">-</span>
+                    {% endif %}
+                </td>
+                <td class="cell-right">
+                    {{ proposal.created_at|date:"Y-m-d" }}
+                </td>
+                <td class="cell-right">
+                    <a href="{% url 'proposal_detail' proposal.id %}" style="color:#9ca3af;">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="muted">No proposals found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Cards View -->
+    <section id="cardsView" style="display:none;">
+        <div class="cards-grid">
+        {% for proposal in proposals %}
+            <div class="project-card"
+                 data-name="{{ proposal.title|lower }}"
+                 data-status="{{ proposal.status }}"
+                 data-region="{{ proposal.location|lower }}"
+                 data-linked="{% if proposal.project %}yes{% else %}no{% endif %}">
+                <div class="card-top-row">
+                    <div>
+                        <div class="card-project-name">
+                            <a href="{% url 'proposal_detail' proposal.id %}" style="text-decoration:none;color:inherit;">
+                                {{ proposal.title }}
+                            </a>
+                        </div>
+                        <div class="card-location">
+                            <i class="fa-solid fa-location-dot"></i> {{ proposal.location }}
+                        </div>
+                    </div>
+                    <div>
+                        {% if proposal.status == 'DRAFT' %}
+                            <span class="badge badge-status-draft">Draft</span>
+                        {% elif proposal.status == 'SUBMITTED' %}
+                            <span class="badge badge-status-submitted">Submitted</span>
+                        {% elif proposal.status == 'APPROVED' %}
+                            <span class="badge badge-status-approved">Approved</span>
+                        {% elif proposal.status == 'REJECTED' %}
+                            <span class="badge badge-status-rejected">Rejected</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-tags">
+                    <span class="badge" style="background:#eff6ff;color:#1d4ed8;">
+                        {{ proposal.get_sector_display }}
+                    </span>
+                    <span class="badge" style="background:#f3f4f6;color:#4b5563;">
+                        {{ proposal.donor }}
+                    </span>
+                </div>
+
+                <div class="card-footer-row">
+                    <div>
+                        <span class="strong">${{ proposal.proposed_budget|floatformat:0 }}</span>
+                    </div>
+                    <div>
+                        {% if proposal.project %}
+                            <span class="strong">Linked</span>
+                        {% else %}
+                            <span class="muted">No project</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="muted">No proposals found.</p>
+        {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const btnTable = document.getElementById('btnTable');
+    const btnCards = document.getElementById('btnCards');
+    const tableView = document.getElementById('tableView');
+    const cardsView = document.getElementById('cardsView');
+
+    btnTable.addEventListener('click', () => {
+        btnTable.classList.add('active'); btnCards.classList.remove('active');
+        tableView.style.display = 'block'; cardsView.style.display = 'none';
+    });
+    btnCards.addEventListener('click', () => {
+        btnCards.classList.add('active'); btnTable.classList.remove('active');
+        tableView.style.display = 'none'; cardsView.style.display = 'block';
+    });
+
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const linkedFilter = document.getElementById('linkedFilter');
+    const regionFilter = document.getElementById('regionFilter');
+
+    const rows = document.querySelectorAll('.project-row');
+    const cards = document.querySelectorAll('.project-card');
+    const countSpan = document.getElementById('proposals-count');
+    const totalProposals = rows.length;
+
+    function normalize(s) { return (s||'').toLowerCase(); }
+
+    function matchesFilters(el) {
+        const n = normalize(el.dataset.name);
+        const s = el.dataset.status;
+        const rg = normalize(el.dataset.region);
+        const linked = el.dataset.linked;
+        const sv = normalize(searchInput.value);
+
+        if (sv && !n.includes(sv)) return false;
+        if (statusFilter.value !== 'all' && statusFilter.value !== s) return false;
+        if (linkedFilter.value !== 'all' && linkedFilter.value !== linked) return false;
+        if (regionFilter.value !== 'all' && regionFilter.value !== rg) return false;
+
+        return true;
+    }
+
+    function applyFilters() {
+        let v = 0;
+        rows.forEach(r => {
+            const m = matchesFilters(r);
+            r.style.display = m ? '' : 'none';
+            if (m) v++;
+        });
+        cards.forEach(c => { c.style.display = matchesFilters(c) ? '' : 'none'; });
+        countSpan.textContent = `${v} of ${totalProposals} proposals`;
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+    linkedFilter.addEventListener('change', applyFilters);
+    regionFilter.addEventListener('change', applyFilters);
+    applyFilters();
+</script>
+{% endblock %}

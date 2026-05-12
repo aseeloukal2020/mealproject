@@ -1,0 +1,379 @@
+{% extends 'base.html' %}
+
+{% block title %}NGO Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 24px 32px;
+    }
+
+    .hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .hero-title {
+        font-size: 26px;
+        font-weight: 700;
+        margin: 0 0 6px;
+    }
+
+    .hero-sub {
+        margin: 0;
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    .btn-primary {
+        text-decoration: none;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: var(--text-main);
+        color: #ffffff;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-primary:hover { background: #000000; }
+
+    .cards-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1px solid var(--card-border);
+        padding: 16px 18px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .card-title { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+
+    .card-icon {
+        width: 32px; height: 32px; border-radius: 999px;
+        display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+
+    .icon-blue { background: #eff6ff; color: #2563eb; }
+    .icon-green { background: #ecfdf3; color: #16a34a; }
+    .icon-purple { background: #f5f3ff; color: #7c3aed; }
+    .icon-yellow { background: #fffbeb; color: #f59e0b; }
+
+    .card-main-value { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
+    .card-subtext { font-size: 13px; color: var(--text-muted); }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 2fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        font-size: 15px; font-weight: 600; margin-bottom: 10px;
+        display: flex; align-items: center; gap: 6px;
+    }
+
+    .section-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+
+    .health-row {
+        display: grid;
+        grid-template-columns: 70px 1fr 30px;
+        align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px;
+    }
+
+    .health-bar-bg {
+        height: 10px; border-radius: 999px; background: #f3f4f6; overflow: hidden;
+    }
+
+    .health-bar-fill { height: 100%; }
+    .health-good { background: #4ade80; }
+    .health-warning { background: #facc15; }
+    .health-critical { background: #f87171; }
+
+    .risk-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .risk-box {
+        border-radius: 12px; padding: 10px 12px;
+        border: 1px solid #e5e7eb; background: #f9fafb;
+        display: flex; justify-content: space-between;
+        align-items: center; font-size: 13px;
+    }
+
+    .risk-label {
+        display: flex; align-items: center; gap: 6px; color: var(--text-muted);
+    }
+
+    .bullet { width: 8px; height: 8px; border-radius: 999px; }
+
+    .list-row {
+        display: grid;
+        grid-template-columns: 120px 1fr 30px;
+        align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px;
+    }
+
+    .list-label {
+        display: flex; align-items: center; gap: 6px;
+    }
+
+    .status-bullet {
+        width: 8px; height: 8px; border-radius: 999px; background: #9ca3af;
+    }
+
+    .bar-track {
+        height: 8px; border-radius: 999px; background: #f3f4f6; overflow: hidden;
+    }
+
+    .bar-fill { height: 100%; background: #60a5fa; }
+
+    .budget-row {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        font-size: 13px; color: var(--text-muted); margin-top: 8px;
+    }
+
+    .budget-value { font-weight: 600; color: var(--text-main); }
+    .budget-bar { margin-top: 10px; }
+    .budget-bar .bar-fill { background: #22c55e; }
+
+    @media (max-width: 900px) {
+        .grid-2 { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="page">
+    <!-- Hero -->
+    <section class="hero">
+        <div>
+            <h1 class="hero-title">NGO Dashboard</h1>
+            <p class="hero-sub">Project monitoring and analytics overview.</p>
+        </div>
+        <div>
+            <a href="/projects/" class="btn-primary">
+                View All Projects
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Top cards -->
+    <section class="cards-row">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Total Projects</div>
+                <div class="card-icon icon-blue">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+            </div>
+            <div class="card-main-value">{{ total_projects }}</div>
+            <div class="card-subtext">{{ active_projects }} active</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Total Budget</div>
+                <div class="card-icon icon-green">
+                    <i class="fa-solid fa-dollar-sign"></i>
+                </div>
+            </div>
+            <div class="card-main-value">${{ total_budget|floatformat:0 }}</div>
+            <div class="card-subtext">{{ budget_utilization_pct }}% utilized</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Beneficiaries</div>
+                <div class="card-icon icon-purple">
+                    <i class="fa-solid fa-user-group"></i>
+                </div>
+            </div>
+            <div class="card-main-value">{{ reached_beneficiaries|default:0 }}</div>
+            <div class="card-subtext">of {{ total_target_beneficiaries|default:0 }} target</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Open Issues</div>
+                <div class="card-icon icon-yellow">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <div class="card-main-value">{{ open_issues }}</div>
+            <div class="card-subtext">high risk reports</div>
+        </div>
+    </section>
+
+    <!-- Health + Risk -->
+    <section class="grid-2">
+        <div class="card">
+            <div class="section-title">
+                <i class="fa-solid fa-heart-pulse"></i>
+                Project Health Status
+            </div>
+            <div class="section-sub">Overall project health based on latest monitoring data.</div>
+
+            <div class="health-row">
+                <span>Good</span>
+                <div class="health-bar-bg">
+                    <div class="health-bar-fill health-good" style="width:{{ good_pct }}%;"></div>
+                </div>
+                <span>{{ good }}</span>
+            </div>
+            <div class="health-row">
+                <span>Warning</span>
+                <div class="health-bar-bg">
+                    <div class="health-bar-fill health-warning" style="width:{{ warning_pct }}%;"></div>
+                </div>
+                <span>{{ warning }}</span>
+            </div>
+            <div class="health-row">
+                <span>Critical</span>
+                <div class="health-bar-bg">
+                    <div class="health-bar-fill health-critical" style="width:{{ critical_pct }}%;"></div>
+                </div>
+                <span>{{ critical }}</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Risk Distribution
+            </div>
+            <div class="section-sub">Number of monitoring reports by risk level.</div>
+
+            <div class="risk-grid">
+                <div class="risk-box">
+                    <div class="risk-label">
+                        <span class="bullet" style="background:#22c55e;"></span> Low
+                    </div>
+                    <div>{{ risk_low }} ({{ risk_low_pct }}%)</div>
+                </div>
+                <div class="risk-box">
+                    <div class="risk-label">
+                        <span class="bullet" style="background:#f59e0b;"></span> Medium
+                    </div>
+                    <div>{{ risk_medium }} ({{ risk_medium_pct }}%)</div>
+                </div>
+                <div class="risk-box">
+                    <div class="risk-label">
+                        <span class="bullet" style="background:#ef4444;"></span> High
+                    </div>
+                    <div>{{ risk_high }} ({{ risk_high_pct }}%)</div>
+                </div>
+                <div class="risk-box">
+                    <div class="risk-label">
+                        <span class="bullet" style="background:#6b7280;"></span> Total
+                    </div>
+                    <div>{{ total_reports }}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Status + Sectors -->
+    <section class="grid-2">
+        <div class="card">
+            <div class="section-title">
+                <i class="fa-solid fa-list-check"></i>
+                Project Status
+            </div>
+            <div class="section-sub">Distribution of projects by implementation status.</div>
+
+            <div class="list-row">
+                <div class="list-label">
+                    <span class="status-bullet" style="background:#2563eb;"></span> Active
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width:{% widthratio active_projects total_projects 100 %}%;"></div>
+                </div>
+                <div>{{ active_projects }}</div>
+            </div>
+            <div class="list-row">
+                <div class="list-label">
+                    <span class="status-bullet" style="background:#f97316;"></span> Delayed
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="background:#f97316;width:{% widthratio delayed_projects total_projects 100 %}%;"></div>
+                </div>
+                <div>{{ delayed_projects }}</div>
+            </div>
+            <div class="list-row">
+                <div class="list-label">
+                    <span class="status-bullet" style="background:#22c55e;"></span> Completed
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="background:#22c55e;width:{% widthratio completed_projects total_projects 100 %}%;"></div>
+                </div>
+                <div>{{ completed_projects }}</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <i class="fa-solid fa-globe"></i>
+                Sector Distribution
+            </div>
+            <div class="section-sub">Projects count per sector.</div>
+
+            {% for sector in sectors %}
+            <div class="list-row">
+                <div class="list-label">
+                    <span class="status-bullet"></span> {{ sector.sector }}
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width:{% widthratio sector.total total_projects 100 %}%;"></div>
+                </div>
+                <div>{{ sector.total }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Budget -->
+    <section class="card">
+        <div class="section-title">
+            <i class="fa-solid fa-sack-dollar"></i>
+            Budget Utilization
+        </div>
+        <div class="bar-track budget-bar">
+            <div class="bar-fill" style="width:{{ budget_utilization_pct }}%;"></div>
+        </div>
+        <div class="budget-row">
+            <div>
+                <span class="budget-value">{{ budget_utilization_pct }}%</span> utilized
+            </div>
+            <div>
+                <span class="budget-value">${{ budget_used|floatformat:0 }}</span>
+                of ${{ total_budget|floatformat:0 }}
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

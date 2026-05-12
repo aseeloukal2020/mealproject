@@ -1,0 +1,573 @@
+{% extends 'base.html' %}
+
+{% block title %}Projects{% endblock %}
+{% block nav_projects %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ... نفس الستايل اللي عندك في projects.html ... */
+    /* انسخ كل الستايل اللي بين <style> و  من ملف projects.html القديم وحطه هنا */
+
+    .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 24px 32px;
+    }
+
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .page-title { font-size: 24px; font-weight: 700; margin: 0 0 4px; }
+    .page-sub { margin: 0; font-size: 13px; color: var(--text-muted); }
+
+    .view-toggle {
+        display: inline-flex; border-radius: 999px;
+        border: 1px solid var(--card-border); overflow: hidden;
+    }
+    .toggle-btn {
+        border: none; background: transparent;
+        padding: 6px 16px; font-size: 13px; cursor: pointer;
+    }
+    .toggle-btn.active { background: #000; color: #fff; }
+
+    .filter-card {
+        background: var(--card-bg); border-radius: 16px;
+        border: 1px solid var(--card-border); padding: 14px 16px 10px;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.04); margin-bottom: 18px;
+    }
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+        gap: 8px;
+    }
+    @media (max-width: 900px) { .filter-grid { grid-template-columns: 1fr; } }
+
+    .filter-input, .filter-select {
+        width: 100%; padding: 8px 10px; border-radius: 999px;
+        border: 1px solid var(--card-border); font-size: 13px;
+        outline: none; background: #f9fafb;
+    }
+
+    .card {
+        background: var(--card-bg); border-radius: 16px;
+        border: 1px solid var(--card-border); padding: 10px 16px;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { color: var(--text-muted); border-bottom: 1px solid var(--card-border); }
+    th, td { padding: 10px 6px; text-align: left; }
+    tbody tr { border-bottom: 1px solid #f3f4f6; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f9fafb; }
+
+    .project-name { font-weight: 600; }
+    .project-location { font-size: 12px; color: var(--text-muted); }
+    .cell-right { text-align: right; }
+    .muted { color: var(--text-muted); }
+
+    .badge {
+        display: inline-flex; align-items: center;
+        padding: 2px 10px; border-radius: 999px;
+        font-size: 11px; font-weight: 500;
+    }
+    .badge-status-active { background: #e0efff; color: #1d4ed8; }
+    .badge-status-delayed { background: #fff7ed; color: #f97316; }
+    .badge-status-completed { background: #ecfdf3; color: #16a34a; }
+
+    .health-indicator {
+        display: inline-flex; align-items: center; gap: 4px; font-size: 12px;
+    }
+    .health-dot { width: 8px; height: 8px; border-radius: 999px; }
+    .health-good .health-dot { background: #22c55e; }
+    .health-warning .health-dot { background: #eab308; }
+    .health-critical .health-dot { background: #ef4444; }
+
+    .badge-risk { border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 500; }
+    .risk-low { background: #ecfdf3; color: #15803d; }
+    .risk-medium { background: #fffbeb; color: #b45309; }
+    .risk-high { background: #fef2f2; color: #b91c1c; }
+
+    .progress-bar { height: 6px; border-radius: 999px; background: #e5e7eb; overflow: hidden; }
+    .progress-fill { height: 100%; background: #2563eb; }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+    }
+    .project-card {
+        background: var(--card-bg); border-radius: 16px;
+        border: 1px solid var(--card-border); padding: 14px 16px 12px;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+    }
+    .card-top-row {
+        display: flex; justify-content: space-between;
+        align-items: flex-start; margin-bottom: 4px;
+    }
+    .card-project-name { font-weight: 600; }
+    .card-location { font-size: 12px; color: var(--text-muted); }
+    .card-tags { display: flex; gap: 6px; margin: 6px 0 8px; font-size: 11px; }
+    .card-footer-row {
+        display: flex; justify-content: space-between;
+        align-items: center; margin-top: 10px; font-size: 12px; color: var(--text-muted);
+    }
+    .card-footer-row .strong { font-weight: 600; color: var(--text-main); }
+    .count-text { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    /* Modal styles */
+    .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 40;
+}
+
+    .modal-wrapper {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+    .modal-hidden {
+    display: none;
+}
+
+    .modal-card {
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 20px 40px rgba(15,23,42,0.35);
+    padding: 20px 20px 16px;
+}
+
+    .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+    .modal-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+    .modal-close-btn {
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+    .modal-close-btn:hover {
+    color: var(--text-main);
+}
+    /* ====== Form inputs used in Add Project modal ====== */
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-main);
+    margin-bottom: 6px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    font-size: 13px;
+    outline: none;
+    background: #f9fafb;
+    color: var(--text-main);
+}
+
+.form-input:focus {
+    border-color: #4f46e5;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+/* ترتيب الحقول في صفّين داخل المودال */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 700px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="page">
+    <section class="header-row">
+    <div>
+        <h1 class="page-title">Projects</h1>
+        <p id="projects-count" class="page-sub">
+            {{ projects|length }} of {{ projects|length }} projects
+        </p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+        <div class="view-toggle">
+            <button id="btnTable" class="toggle-btn active">Table</button>
+            <button id="btnCards" class="toggle-btn">Cards</button>
+        </div>
+
+        {% if request.user.is_authenticated %}
+            <button id="openProjectModal"
+               style="border:none;cursor:pointer;text-decoration:none;padding:8px 14px;border-radius:999px;
+                      background:#2563eb;color:#ffffff;font-size:13px;
+                      display:inline-flex;align-items:center;gap:6px;">
+                <i class="fa-solid fa-plus"></i>
+                Add Project
+            </button>
+        {% endif %}
+    </div>
+</section>
+
+    <!-- الفلاتر -->
+    <section class="filter-card">
+        <div class="filter-grid">
+            <input id="searchInput" type="text" class="filter-input" placeholder="Search projects...">
+            <select id="statusFilter" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="ACTIVE">Active</option>
+                <option value="DELAYED">Delayed</option>
+                <option value="COMPLETED">Completed</option>
+            </select>
+            <select id="healthFilter" class="filter-select">
+                <option value="all">All Health</option>
+                <option value="Good">Good</option>
+                <option value="Warning">Warning</option>
+                <option value="Critical">Critical</option>
+            </select>
+            <select id="riskFilter" class="filter-select">
+                <option value="all">All Risk</option>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+            </select>
+            <select id="regionFilter" class="filter-select">
+                <option value="all">All Regions</option>
+                {% for region in regions %}
+                    <option value="{{ region|lower }}">{{ region }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </section>
+{% if request.user.is_authenticated %}
+<div id="projectModal" class="modal-hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-wrapper">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">Add New Project</div>
+                    <div style="font-size:12px;color:var(--text-muted);">
+                        Create a new project and assign it to a monitoring officer.
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" id="closeProjectModal">&times;</button>
+            </div>
+
+            <form method="post" action="{% url 'project_create' %}">
+                {% csrf_token %}
+
+                <div class="form-row">
+                    <div>
+                        <label class="form-label">Project Name</label>
+                        {{ project_form.name }}
+                    </div>
+                    <div>
+                        <label class="form-label">Sector</label>
+                        {{ project_form.sector }}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label class="form-label">Donor</label>
+                        {{ project_form.donor }}
+                    </div>
+                    <div>
+                        <label class="form-label">Budget</label>
+                        {{ project_form.budget }}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label class="form-label">Start Date</label>
+                        {{ project_form.start_date }}
+                    </div>
+                    <div>
+                        <label class="form-label">End Date</label>
+                        {{ project_form.end_date }}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label class="form-label">Location</label>
+                        {{ project_form.location }}
+                    </div>
+                    <div>
+                        <label class="form-label">Target Beneficiaries</label>
+                        {{ project_form.target_beneficiaries }}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label class="form-label">Status</label>
+                        {{ project_form.status }}
+                    </div>
+                    <div>
+                        <label class="form-label">Assigned Officer</label>
+                        {% if request.user.role == 'ADMIN' %}
+                            {{ project_form.assigned_officer }}
+                        {% else %}
+                            <!-- للموظف العادي نخفي الحقل ونعتمد على view لتعيينه له -->
+                            <input type="hidden" name="assigned_officer" value="">
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:10px;">
+                                This project will be assigned to you.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+                    <button type="submit"
+                            style="border:none;border-radius:999px;padding:8px 18px;
+                                   background:#2563eb;color:#fff;font-size:13px;
+                                   display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+                        <i class="fa-solid fa-check"></i>
+                        Save Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+    <!-- Table View -->
+    <section id="tableView" class="card">
+        <table>
+            <thead>
+            <tr>
+                <th>Project</th><th>Status</th><th>Health</th>
+                <th>Risk</th><th>Progress</th><th>Budget</th>
+                <th class="cell-right">Beneficiaries</th><th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for project in projects %}
+            <tr class="project-row"
+                data-name="{{ project.name|lower }}"
+                data-status="{{ project.status }}"
+                data-health="{{ project.health }}"
+                data-risk="{{ project.latest_risk|default_if_none:'' }}"
+                data-region="{{ project.location|lower }}">
+                <td>
+                    <div class="project-name">
+                        <a href="{% url 'project_details' project.id %}" style="text-decoration:none;color:inherit;">{{ project.name }}</a>
+                    </div>
+                    <div class="project-location"><i class="fa-solid fa-location-dot"></i> {{ project.location }}</div>
+                </td>
+                <td>
+                    {% if project.status == 'ACTIVE' %}<span class="badge badge-status-active">Active</span>
+                    {% elif project.status == 'DELAYED' %}<span class="badge badge-status-delayed">Delayed</span>
+                    {% elif project.status == 'COMPLETED' %}<span class="badge badge-status-completed">Completed</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if project.health == 'Good' %}<span class="health-indicator health-good"><span class="health-dot"></span>Good</span>
+                    {% elif project.health == 'Warning' %}<span class="health-indicator health-warning"><span class="health-dot"></span>Warning</span>
+                    {% elif project.health == 'Critical' %}<span class="health-indicator health-critical"><span class="health-dot"></span>Critical</span>
+                    {% else %}<span class="muted">{{ project.health }}</span>{% endif %}
+                </td>
+                <td>
+                    {% if project.latest_risk == 'LOW' %}<span class="badge-risk risk-low">Low</span>
+                    {% elif project.latest_risk == 'MEDIUM' %}<span class="badge-risk risk-medium">Medium</span>
+                    {% elif project.latest_risk == 'HIGH' %}<span class="badge-risk risk-high">High</span>
+                    {% else %}<span class="muted">-</span>{% endif %}
+                </td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <div class="progress-bar" style="width:80px;">
+                            <div class="progress-fill" style="width:{{ project.progress_percentage }}%;"></div>
+                        </div>
+                        <span style="font-size:12px;">{{ project.progress_percentage }}%</span>
+                    </div>
+                </td>
+                <td>${{ project.budget|floatformat:0 }}</td>
+                <td class="cell-right">{{ project.latest_beneficiaries }}</td>
+                <td class="cell-right">
+                    <a href="{% url 'project_details' project.id %}" style="color:#9ca3af;">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="muted">No projects found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Cards View -->
+    <section id="cardsView" style="display:none;">
+        <div class="cards-grid">
+        {% for project in projects %}
+            <div class="project-card"
+                 data-name="{{ project.name|lower }}"
+                 data-status="{{ project.status }}"
+                 data-health="{{ project.health }}"
+                 data-risk="{{ project.latest_risk|default_if_none:'' }}"
+                 data-region="{{ project.location|lower }}">
+                <div class="card-top-row">
+                    <div>
+                        <div class="card-project-name">
+                            <a href="{% url 'project_details' project.id %}" style="text-decoration:none;color:inherit;">{{ project.name }}</a>
+                        </div>
+                        <div class="card-location"><i class="fa-solid fa-location-dot"></i> {{ project.location }}</div>
+                    </div>
+                    <div>
+                        {% if project.health == 'Good' %}<span class="health-indicator health-good"><span class="health-dot"></span>Good</span>
+                        {% elif project.health == 'Warning' %}<span class="health-indicator health-warning"><span class="health-dot"></span>Warning</span>
+                        {% elif project.health == 'Critical' %}<span class="health-indicator health-critical"><span class="health-dot"></span>Critical</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-tags">
+                    {% if project.status == 'ACTIVE' %}<span class="badge badge-status-active">Active</span>
+                    {% elif project.status == 'DELAYED' %}<span class="badge badge-status-delayed">Delayed</span>
+                    {% elif project.status == 'COMPLETED' %}<span class="badge badge-status-completed">Completed</span>{% endif %}
+                    {% if project.latest_risk == 'LOW' %}<span class="badge-risk risk-low">Low</span>
+                    {% elif project.latest_risk == 'MEDIUM' %}<span class="badge-risk risk-medium">Medium</span>
+                    {% elif project.latest_risk == 'HIGH' %}<span class="badge-risk risk-high">High</span>{% endif %}
+                </div>
+                <div class="progress-bar" style="margin-bottom:4px;">
+                    <div class="progress-fill" style="width:{{ project.progress_percentage }}%;"></div>
+                </div>
+                <div style="font-size:12px;margin-bottom:8px;">{{ project.progress_percentage }}%</div>
+                <div class="card-footer-row">
+                    <div><span class="strong">${{ project.budget|floatformat:0 }}</span></div>
+                    <div><span class="strong">{{ project.latest_beneficiaries }}</span> <span class="muted">beneficiaries</span></div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="muted">No projects found.</p>
+        {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    // فتح/إغلاق المودال
+    const openBtn = document.getElementById('openProjectModal');
+    const closeBtn = document.getElementById('closeProjectModal');
+    const modal = document.getElementById('projectModal');
+
+    if (openBtn && closeBtn && modal) {
+        openBtn.addEventListener('click', function () {
+            modal.classList.remove('modal-hidden');
+        });
+
+        closeBtn.addEventListener('click', function () {
+            modal.classList.add('modal-hidden');
+        });
+
+        // إغلاق عند الضغط على الخلفية
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                modal.classList.add('modal-hidden');
+            }
+        });
+    }
+</script>
+
+<!-- JS الفلاتر والتبديل بين Table/Cards اللي عندك من قبل -->
+<script>
+    // ... كود الفلاتر والتبديل الموجود مسبقا ...
+</script>
+
+<script>
+    const btnTable = document.getElementById('btnTable');
+    const btnCards = document.getElementById('btnCards');
+    const tableView = document.getElementById('tableView');
+    const cardsView = document.getElementById('cardsView');
+
+    btnTable.addEventListener('click', () => {
+        btnTable.classList.add('active'); btnCards.classList.remove('active');
+        tableView.style.display = 'block'; cardsView.style.display = 'none';
+    });
+    btnCards.addEventListener('click', () => {
+        btnCards.classList.add('active'); btnTable.classList.remove('active');
+        tableView.style.display = 'none'; cardsView.style.display = 'block';
+    });
+
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const healthFilter = document.getElementById('healthFilter');
+    const riskFilter = document.getElementById('riskFilter');
+    const regionFilter = document.getElementById('regionFilter');
+    const rows = document.querySelectorAll('.project-row');
+    const cards = document.querySelectorAll('.project-card');
+    const countSpan = document.getElementById('projects-count');
+    const totalProjects = rows.length;
+
+    function normalize(s) { return (s||'').toLowerCase(); }
+
+    function matchesFilters(el) {
+        const n = normalize(el.dataset.name);
+        const s = el.dataset.status;
+        const h = el.dataset.health;
+        const r = el.dataset.risk;
+        const rg = normalize(el.dataset.region);
+        const sv = normalize(searchInput.value);
+        if (sv && !n.includes(sv)) return false;
+        if (statusFilter.value !== 'all' && statusFilter.value !== s) return false;
+        if (healthFilter.value !== 'all' && healthFilter.value !== h) return false;
+        if (riskFilter.value !== 'all' && riskFilter.value !== r) return false;
+        if (regionFilter.value !== 'all' && regionFilter.value !== rg) return false;
+        return true;
+    }
+
+    function applyFilters() {
+        let v = 0;
+        rows.forEach(r => { const m = matchesFilters(r); r.style.display = m ? '' : 'none'; if(m) v++; });
+        cards.forEach(c => { c.style.display = matchesFilters(c) ? '' : 'none'; });
+        countSpan.textContent = `${v} of ${totalProjects} projects`;
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+    healthFilter.addEventListener('change', applyFilters);
+    riskFilter.addEventListener('change', applyFilters);
+    regionFilter.addEventListener('change', applyFilters);
+    applyFilters();
+</script>
+{% endblock %}
