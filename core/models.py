@@ -15,14 +15,18 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
+class Sector(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
 class Project(models.Model):
-    SECTOR_CHOICES = (
-        ('FOOD', 'Food Security'),
-        ('HEALTH', 'Health'),
-        ('EDU', 'Education'),
-        ('SHELTER', 'Shelter'),
-    )
+   
 
     STATUS_CHOICES = (
         ('ACTIVE', 'Active'),
@@ -31,7 +35,13 @@ class Project(models.Model):
     )
 
     name = models.CharField(max_length=200)
-    sector = models.CharField(max_length=20, choices=SECTOR_CHOICES)
+    sector = models.ForeignKey(
+    Sector,
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='projects'
+)
     donor = models.CharField(max_length=200)
     budget = models.DecimalField(max_digits=12, decimal_places=2)
 
@@ -88,10 +98,13 @@ class ProjectProposal(models.Model):
     )
 
     title = models.CharField(max_length=200)
-    sector = models.CharField(
-        max_length=20,
-        choices=Project.SECTOR_CHOICES  # نستخدم نفس الخيارات من Project
-    )
+    sector = models.ForeignKey(
+    Sector,
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='proposals'
+)
     donor = models.CharField(max_length=200)
 
     proposed_budget = models.DecimalField(max_digits=12, decimal_places=2)

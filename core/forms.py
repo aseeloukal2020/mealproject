@@ -1,9 +1,9 @@
 from django import forms
-from .models import MonitoringReport, Project, ProjectProposal
+from .models import MonitoringReport, Project, ProjectProposal, Sector
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from .models import User
-
+from django.db.models import Q 
 
 # فورم التسجيل
 # forms.py
@@ -166,6 +166,19 @@ class ProjectForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-input'}),
             'assigned_officer': forms.Select(attrs={'class': 'form-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        qs = Sector.objects.filter(is_active=True).order_by('name')
+
+        # لو بنعدل مشروع قطاعه صار inactive، نخليه ظاهر حتى لا يختفي من الفورم
+        if self.instance and self.instance.pk and self.instance.sector_id:
+            qs = Sector.objects.filter(
+                Q(is_active=True) | Q(id=self.instance.sector_id)
+            ).distinct().order_by('name')
+
+        self.fields['sector'].queryset = qs
 class ProjectProposalForm(forms.ModelForm):
     class Meta:
         model = ProjectProposal
@@ -181,7 +194,7 @@ class ProjectProposalForm(forms.ModelForm):
             'summary',
             'proposal_file',
             'status',
-            'project',   # اختياري، يتركه المستخدم فاضي أو يربطه بمشروع موجود
+            'project',
         ]
         widgets = {
             'title': forms.TextInput(attrs={
@@ -229,3 +242,15 @@ class ProjectProposalForm(forms.ModelForm):
                 'class': 'form-file',
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        qs = Sector.objects.filter(is_active=True).order_by('name')
+
+        if self.instance and self.instance.pk and self.instance.sector_id:
+            qs = Sector.objects.filter(
+                Q(is_active=True) | Q(id=self.instance.sector_id)
+            ).distinct().order_by('name')
+
+        self.fields['sector'].queryset = qs

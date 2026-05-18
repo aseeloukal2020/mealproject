@@ -42,7 +42,7 @@
         <div>
             <h1 style="font-size:22px;font-weight:700;margin:0 0 4px;">{{ proposal.title }}</h1>
             <div style="font-size:13px;color:var(--text-muted);">
-                {{ proposal.get_sector_display }} &bull; {{ proposal.donor }}
+                {{ proposal.sector.name|default:"No sector" }} &bull; {{ proposal.donor }}
             </div>
         </div>
         <div class="field-label" style="margin-top:10px;">Actions</div>

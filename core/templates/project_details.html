@@ -317,7 +317,7 @@
                 <div class="summary-meta">
                     <div>
                         <span class="label">Sector:</span><br>
-                        <span>{{ project.get_sector_display }}</span>
+                        <span>{{ project.sector.name|default:"No sector" }}</span>
                     </div>
                     <div>
                         <span class="label">Donor:</span><br>

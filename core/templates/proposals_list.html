@@ -210,7 +210,7 @@
                     {% endif %}
                 </td>
                 <td>{{ proposal.donor }}</td>
-                <td>{{ proposal.get_sector_display }}</td>
+                <td>{{ proposal.sector.name|default:"No sector" }}</td>
                 <td>${{ proposal.proposed_budget|floatformat:0 }}</td>
                 <td>
                     {% if proposal.project %}
@@ -272,7 +272,7 @@
 
                 <div class="card-tags">
                     <span class="badge" style="background:#eff6ff;color:#1d4ed8;">
-                        {{ proposal.get_sector_display }}
+                        {{ proposal.sector.name|default:"No sector" }}
                     </span>
                     <span class="badge" style="background:#f3f4f6;color:#4b5563;">
                         {{ proposal.donor }}

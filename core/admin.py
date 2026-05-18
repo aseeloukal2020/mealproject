@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Project, MonitoringReport, Attendance, ProjectProposal
+from .models import User, Project, MonitoringReport, Attendance, ProjectProposal,Sector
 
 
 @admin.register(User)
@@ -85,7 +85,12 @@ class AttendanceAdmin(admin.ModelAdmin):
     )
     list_filter = ('date', 'status', 'is_office_network')
     search_fields = ('user__username',)
-
+@admin.register(Sector)
+class SectorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_active', 'created_at')
+    list_filter = ('is_active',)
+    search_fields = ('name',)
+    list_editable = ('is_active',)
 @admin.register(ProjectProposal)
 class ProjectProposalAdmin(admin.ModelAdmin):
     list_display = (

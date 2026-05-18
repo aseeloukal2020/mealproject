@@ -345,7 +345,7 @@
             {% for sector in sectors %}
             <div class="list-row">
                 <div class="list-label">
-                    <span class="status-bullet"></span> {{ sector.sector }}
+                    <span class="status-bullet"></span> {{ sector.sector_name|default:"No sector" }}
                 </div>
                 <div class="bar-track">
                     <div class="bar-fill" style="width:{% widthratio sector.total total_projects 100 %}%;"></div>

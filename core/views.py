@@ -156,8 +156,12 @@ def dashboard(request):
     delayed_projects = projects.filter(status='DELAYED').count()
     completed_projects = projects.filter(status='COMPLETED').count()
 
-    sectors = projects.values('sector').annotate(total=Count('id'))
-
+    sectors = (
+     projects
+    .values(sector_name=models.F('sector__name'))
+    .annotate(total=Count('id'))
+    .order_by('sector_name')
+)
     reports_qs = MonitoringReport.objects.all()
     total_reports = reports_qs.count()
 
