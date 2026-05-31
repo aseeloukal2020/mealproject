@@ -3,7 +3,8 @@ from .models import Project, ProjectProposal, User
 from django.db.models import Avg
 from django.db.models import Count
 from django.db import models
-
+from django.db.models import Sum  
+from django.db.models import Q, Count
 # الاستيرادات الخاصة بالتقارير
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -44,7 +45,8 @@ def dashboard(request):
 
         # المشاريع المسموح بها فقط
         projects = get_user_projects(user).prefetch_related('reports')
-
+        programs = Program.objects.filter(projects__in=projects).distinct()
+        total_programs = programs.count()
         total_projects = projects.count()
         active_projects = projects.filter(status='ACTIVE').count()
         delayed_projects = projects.filter(status='DELAYED').count()
@@ -113,6 +115,7 @@ def dashboard(request):
             ).count()
 
         context = {
+            'total_programs': total_programs,
             'total_projects': total_projects,
             'active_projects': active_projects,
             'delayed_projects': delayed_projects,
@@ -417,7 +420,7 @@ def completed_projects(request):
 
 
 from django.shortcuts import render
-from .models import User, Project, MonitoringReport, Attendance
+from .models import User, Project, MonitoringReport, Attendance, Sector, Program
 @approved_required
 def projects_list(request):
     user = request.user
@@ -466,6 +469,90 @@ def projects_list(request):
         'project_form': project_form,
     }
     return render(request, 'projects.html', context)
+@approved_required
+def programs_list(request):
+    user = request.user
+
+    # نجيب المشاريع المسموح بها لهذا المستخدم
+    user_projects = get_user_projects(user)
+
+    # البرامج التي تحتوي على مشاريع من هذه المشاريع
+    programs = (
+        Program.objects
+        .filter(projects__in=user_projects)
+        .distinct()
+        .annotate(
+            project_count=Count('projects', distinct=True),
+            total_budget=Sum('projects__budget'),
+        )
+        .order_by('name')
+    )
+
+    context = {
+        'programs': programs,
+    }
+    return render(request, 'programs.html', context)
+
+
+@approved_required
+def program_details(request, program_id):
+    user = request.user
+    program = get_object_or_404(Program, id=program_id)
+
+    # مشاريع هذا البرنامج المسموح بها لهذا المستخدم
+    projects = (
+        get_user_projects(user)
+        .filter(program=program)
+        .prefetch_related('reports')
+        .order_by('-created_at')
+    )
+
+    # لو مش أدمن وما إله أي مشروع بهذا البرنامج → ممنوع يشوف
+    if not projects.exists() and not (
+        user.is_superuser or user.is_staff or getattr(user, 'role', None) == 'ADMIN'
+    ):
+        return HttpResponseForbidden("You don't have permission to view this program.")
+
+    # نفس منطق projects_list: نضيف health و آخر تقرير
+    for p in projects:
+        p.health = p.get_health_status()
+        latest = p.reports.order_by('-visit_date').first()
+        if latest:
+            p.latest_risk = latest.risk_level
+            p.latest_beneficiaries = latest.beneficiaries_reached
+        else:
+            p.latest_risk = None
+            p.latest_beneficiaries = 0
+
+    good = warning = critical = 0
+    for p in projects:
+        if p.health == "Good":
+            good += 1
+        elif p.health == "Warning":
+            warning += 1
+        elif p.health == "Critical":
+            critical += 1
+
+    regions = (
+        Project.objects.filter(id__in=[p.id for p in projects])
+        .exclude(location__isnull=True)
+        .exclude(location__exact='')
+        .values_list('location', flat=True)
+        .distinct()
+        .order_by('location')
+    )
+
+    project_form = ProjectForm()
+    context = {
+        'program': program,
+        'projects': projects,
+        'good': good,
+        'warning': warning,
+        'critical': critical,
+        'regions': regions,
+        'project_form': project_form,
+    }
+    return render(request, 'program_details.html', context)
 @approved_required
 def project_create(request):
     user = request.user

@@ -297,7 +297,13 @@
                 <i class="fa-solid fa-chart-line"></i>
                 <span>Dashboard</span>
             </a>
-
+            <li class="nav-item">
+    <a href="{% url 'programs' %}"
+       class="nav-link {% block nav_programs %}{% endblock %}">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>Programs</span>
+    </a>
+</li>
             <a href="/projects/"
                class="nav-link {% block nav_projects %}{% endblock %}">
                 <i class="fa-solid fa-diagram-project"></i>

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Project, MonitoringReport, Attendance, ProjectProposal,Sector
+from .models import User, Project, MonitoringReport, Attendance, ProjectProposal,Sector,Program
 
 
 @admin.register(User)
@@ -133,3 +133,16 @@ class ProjectProposalAdmin(admin.ModelAdmin):
         if not obj.created_by_id:
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
+@admin.register(Program)
+class ProgramAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'donor',
+        'location',
+        'start_date',
+        'end_date',
+        'created_by',
+        'created_at',
+    )
+    search_fields = ('name', 'donor', 'location')
+    list_filter = ('donor', 'location', 'start_date')

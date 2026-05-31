@@ -32,9 +32,11 @@ urlpatterns = [
     ),
     path('proposals/<int:proposal_id>/', views.proposal_detail, name='proposal_detail'),
     path('proposals/<int:proposal_id>/edit/', views.proposal_edit, name='proposal_edit'),
-     path(
+    path(
         'proposals/<int:proposal_id>/create-project/',
         views.proposal_create_project,
         name='proposal_create_project'
     ),
+    path('programs/', views.programs_list, name='programs'),
+    path('programs/<int:program_id>/', views.program_details, name='program_details'),
 ]

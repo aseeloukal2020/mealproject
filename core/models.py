@@ -25,15 +25,43 @@ class Sector(models.Model):
 
     def __str__(self):
         return self.name
-class Project(models.Model):
-   
+class Program(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    donor = models.CharField(max_length=200, blank=True)
 
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+
+    location = models.CharField(max_length=200, blank=True)
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='programs'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+class Project(models.Model):
     STATUS_CHOICES = (
         ('ACTIVE', 'Active'),
         ('COMPLETED', 'Completed'),
         ('DELAYED', 'Delayed'),
     )
-
+    program = models.ForeignKey(
+        Program,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='projects'
+    )
     name = models.CharField(max_length=200)
     sector = models.ForeignKey(
     Sector,
@@ -76,7 +104,7 @@ class Project(models.Model):
         return "No Data"
 
      latest = reports.order_by('-visit_date').first() # احضار اخر تقرير او اخر حاله للمشروع 
-
+     
      progress = latest.progress_percentage
      risk = latest.risk_level
      beneficiaries = latest.beneficiaries_reached
